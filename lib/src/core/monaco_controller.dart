@@ -1115,6 +1115,46 @@ class MonacoController {
     );
   }
 
+  // --- RAW JAVASCRIPT EXECUTION ---
+
+  /// Executes arbitrary JavaScript code in the editor's WebView.
+  ///
+  /// This is a general-purpose escape hatch for scenarios not covered by the
+  /// typed API — e.g. configuring language services, injecting plugins, or
+  /// calling Monaco APIs that are not yet wrapped.
+  ///
+  /// The method waits for the editor to be ready before executing the script.
+  ///
+  /// ```dart
+  /// // Configure JSON diagnostics options
+  /// await controller.runJavaScript('''
+  ///   monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+  ///     validate: true,
+  ///     schemas: [{ uri: 'http://schema/example', fileMatch: ['*'], schema: mySchema }]
+  ///   });
+  /// ''');
+  /// ```
+  Future<void> runJavaScript(String script) async {
+    await _ensureReady();
+    await _webViewController.runJavaScript(script);
+  }
+
+  /// Executes JavaScript code and returns the result.
+  ///
+  /// Like [runJavaScript], but captures and returns the evaluation result.
+  /// The return type varies by platform — see [PlatformWebViewController]
+  /// for details.
+  ///
+  /// ```dart
+  /// final version = await controller.runJavaScriptReturningResult(
+  ///   'monaco.editor.getEditors().length',
+  /// );
+  /// ```
+  Future<Object?> runJavaScriptReturningResult(String script) async {
+    await _ensureReady();
+    return _webViewController.runJavaScriptReturningResult(script);
+  }
+
   // --- HELPERS ---
   /// Dispose the controller and clean up resources
   void dispose() {

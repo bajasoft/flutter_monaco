@@ -1044,5 +1044,51 @@ void main() {
         expect(stats.charCount.value, 50);
       });
     });
+
+    group('runJavaScript', () {
+      test('executes script after ready', () async {
+        final bundle = await _createBundle();
+        await bundle.controller.runJavaScript('console.log("hello")');
+        expect(
+          bundle.webview.executed.any((s) => s.contains('console.log')),
+          true,
+        );
+      });
+
+      test('waits for ready before executing', () async {
+        final bundle = await _createBundle(ready: false);
+        final future = bundle.controller.runJavaScript('myCustomSetup()');
+        expect(bundle.webview.executed, isEmpty);
+        bundle.controller.completeReadyForTesting();
+        await future;
+        expect(
+          bundle.webview.executed.any((s) => s.contains('myCustomSetup')),
+          true,
+        );
+      });
+    });
+
+    group('runJavaScriptReturningResult', () {
+      test('executes script and returns result', () async {
+        final bundle = await _createBundle();
+        bundle.webview.enqueueResult('myQuery()', 42);
+        final result =
+            await bundle.controller.runJavaScriptReturningResult('myQuery()');
+        expect(result, 42);
+      });
+
+      test('waits for ready before executing', () async {
+        final bundle = await _createBundle(ready: false);
+        final future =
+            bundle.controller.runJavaScriptReturningResult('myQuery()');
+        expect(bundle.webview.executed, isEmpty);
+        bundle.controller.completeReadyForTesting();
+        await future;
+        expect(
+          bundle.webview.executed.any((s) => s.contains('myQuery')),
+          true,
+        );
+      });
+    });
   });
 }
