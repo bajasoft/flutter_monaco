@@ -364,6 +364,21 @@ await controller.executeAction(MonacoAction.toggleLineComment);
 // Or use a raw Monaco action id string if needed:
 // await controller.executeAction('editor.action.commentLine');
 
+// Raw JavaScript execution (escape hatch for uncovered APIs)
+await controller.runJavaScript('''
+  monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+    validate: true,
+    schemas: [{
+      uri: 'http://my-schema',
+      fileMatch: ['*'],
+      schema: { type: 'object' }
+    }]
+  });
+''');
+final editorCount = await controller.runJavaScriptReturningResult(
+  'monaco.editor.getEditors().length',
+);
+
 // Live statistics
 controller.liveStats.addListener(() {
   final stats = controller.liveStats.value;
